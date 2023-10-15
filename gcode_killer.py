@@ -2,7 +2,7 @@
 
 ︻╦̵̵̿╤── GCODE_KILLER ╾━╤デ╦︻
 
-This is an example how to convert gcode to cartesian coordinates - including archs (here cw only).
+This is an example how to convert gcode to cartesian coordinates - including archs (here cw and ccw now - i was bored).
 For ccw archs you will need to increment angle - not decrement like here.
 
 The purpose of creating this 'translator code' was the use in my cnc multitool.
@@ -57,7 +57,48 @@ def arch_cw(x_prev, y_prev, i, j, x, y):
     except Exception as e:
         print(f"Error in arch_cw: {e}")
         return []
+def arch_ccw(x_prev, y_prev, i, j, x, y):
+    radius = 0.0
+    angle_arch = 0.0
 
+    try:
+        if i == 0.0 and j == 0.0:
+            angle_arch = 0.0
+        else:
+            radius = np.sqrt(i**2 + j**2)
+            ai_denominator = (y_prev - j)
+            axy_denominator = (x_prev + i - x)
+            
+            if abs(ai_denominator) < 1e-6 or abs(axy_denominator) < 1e-6:
+                ai = 0.0
+                axy = 0.0
+            else:
+                ai = (x_prev - i) / ai_denominator
+                axy = (y_prev + j - y) / axy_denominator
+            
+            if (1 + ai * axy) < 1e-6:
+                angle_arch = 0.0
+            else:
+                angle_arch = np.arctan(abs(ai - axy) / (1 + ai * axy))
+                
+            if x == x_prev and y == y_prev:
+                angle_arch = 2 * np.pi
+            if x < x_prev or y < y_prev:
+                angle_arch = 2 * np.pi - angle_arch
+
+        increment = 0.01
+        arc_points = []
+        dummy=0.0
+        while dummy <= angle_arch:
+            angle_arch += increment
+            x_arc = i + radius * np.cos(dummy)
+            y_arc = j + radius * np.sin(dummy)
+            arc_points.append((x_arc, y_arc))
+
+        return arc_points
+    except Exception as e:
+        print(f"Error in arch_cw: {e}")
+        return []
 f = open("demo.gcode", "r", encoding='utf-8')
 lines = [line for line in f]
 temp = []
@@ -101,7 +142,10 @@ for line2 in lines:
                 g = value
             
         if i != 0.0 or j != 0.0:
-            arc_points = arch_cw(x_prev, y_prev, i, j, x, y)
+            if g==2:
+                arc_points = arch_cw(x_prev, y_prev, i, j, x, y)
+            if g==3:
+                arc_points = arch_ccw(x_prev, y_prev, i, j, x, y)
             for point in arc_points:
                 x1, y1 = point
                 x1 = x_prev + x1

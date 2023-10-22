@@ -28,7 +28,7 @@ def arch_cw(x_prev, y_prev, i, j, x, y):
             ai_denominator = (y_prev - j)
             axy_denominator = (x_prev + i - x)
             
-            if abs(ai_denominator) < 1e-6 or abs(axy_denominator) < 1e-6:
+            if abs(ai_denominator) < 1e-6:
                 ai = 0.0
                 axy = 0.0
             else:
@@ -69,7 +69,7 @@ def arch_ccw(x_prev, y_prev, i, j, x, y):
             ai_denominator = (y_prev - j)
             axy_denominator = (x_prev + i - x)
             
-            if abs(ai_denominator) < 1e-6 or abs(axy_denominator) < 1e-6:
+            if abs(ai_denominator) < 1e-6 :
                 ai = 0.0
                 axy = 0.0
             else:
